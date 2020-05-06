@@ -1,24 +1,49 @@
 const inquirer = require("inquirer");
 const colors = require("colors");
-const Keys = require("../lib/Keys");
+const KeyStore = require("../lib/KeyStore");
+
+const requiredTrue = (input) => (input === "" ? "A key is required" : true);
 
 const key = {
   async set() {
-    // console.log("setting here");
-    const keys = new Keys();
-    const input = inquirer.prompt([
+    const keyStore = new KeyStore();
+    const input = await inquirer.prompt([
+      {
+        type: "list",
+        name: "service",
+        message: "set API key for which service?",
+        choices: ["spotify", "OMDB"],
+      },
+    ]);
+    const keyInput = await inquirer.prompt([
       {
         type: "input",
         name: "key",
-        message: "Enter Spotify API key".green,
+        message: `Enter ${input.service} key:`,
+        validate: requiredTrue,
       },
     ]);
+    const setKey = keyStore.setKey(keyInput.key, input.service);
+    if (setKey) {
+      console.log(`${input.service} API Key set`);
+    }
   },
-  show() {
-    console.log("Show here");
+  async show() {
+    const keyStore = new KeyStore();
+    const input = await inquirer.prompt([
+      {
+        type: "list",
+        name: "service",
+        message: "Display key for which service?",
+        choices: ["OMDB", "spotify"],
+      },
+    ]);
+    const keyReturned = keyStore.getKey(input.service);
+    return keyReturned;
   },
   remove() {
-    console.log("Remove here");
+    const keyStore = new KeyStore();
+    keyStore.deleteKey();
   },
 };
 
